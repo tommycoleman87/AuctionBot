@@ -12,17 +12,17 @@ GUILD = os.getenv('DISCORD_GUILD')
 bot = commands.Bot(command_prefix='!')
 WOW_CLIENT = os.getenv('WOW_CLIENT')
 WOW_SECRET = os.getenv('WOW_SECRET')
-
+token = ''
 def create_access_token(client_id, client_secret):
     data = { 'grant_type': 'client_credentials' }
     response = requests.post('https://us.battle.net/oauth/token', data=data, auth=(client_id, client_secret))
     return response.json()
 
-response = create_access_token(WOW_CLIENT, WOW_SECRET)
-token = response['access_token']
-headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
 
-async def item_search(item, search_item):      
+
+
+async def item_search(item, search_item): 
+    headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}     
     items = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={item}&orderby=id', headers = headers)
    
     items = items.json()
@@ -33,7 +33,14 @@ async def item_search(item, search_item):
         if name.find(search_item) != -1:
             items_dict[i['data']['id']] = { 'name' : i['data']['name']['en_US'], 'price' : 'Not in AH'}
     return items_dict
-
+@bot.command(name="login")
+async def login(message):
+    response = create_access_token(WOW_CLIENT, WOW_SECRET)
+    global token
+    if 'access_token' in response:
+        token = response['access_token']
+    else:
+        message.send(response)
 @bot.command(name="hello")
 async def hello(message):
     await message.send(f'Hello {message.author}!')
@@ -60,6 +67,7 @@ async def price_check(message):
     item = item.split(' ')
     item = item[1]
     items = await item_search(item, search_item)
+    headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
     auctions = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/60/auctions?namespace=dynamic-us&locale=en_US', headers = headers)
     print(search_item)
     auctions = auctions.json()
