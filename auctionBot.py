@@ -40,8 +40,20 @@ async def get_token(message):
 
 @bot.command(name="search")
 async def item_search(message):
-    print(message.content)
-
+    headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
+    item = str(message.message.content)
+    item = item.split(' ')
+    item = item[-1]
+        
+    items = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={item}&orderby=id', headers = headers)
+    # items = items.text
+#    items = items['results']
+    # items = items.json()
+   
+    items = items.json()
+    items = items['results']
+    items = [i['data']['name']['en_US'] for i in items]
+    await message.send(str(items))
 
 
 
