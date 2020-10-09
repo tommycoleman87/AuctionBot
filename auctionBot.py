@@ -4,7 +4,7 @@ import discord
 import requests
 from dotenv import load_dotenv
 from discord.ext import commands
-# from oauth_hook import OAuthHook
+
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
