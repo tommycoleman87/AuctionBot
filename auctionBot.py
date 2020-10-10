@@ -4,7 +4,7 @@ import discord
 import requests
 from dotenv import load_dotenv
 from discord.ext import commands
-
+import time
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -13,6 +13,8 @@ bot = commands.Bot(command_prefix='!')
 WOW_CLIENT = os.getenv('WOW_CLIENT')
 WOW_SECRET = os.getenv('WOW_SECRET')
 token = ''
+server_name = 'Stormrage'
+server_id = 60
 def create_access_token(client_id, client_secret):
     data = { 'grant_type': 'client_credentials' }
     response = requests.post('https://us.battle.net/oauth/token', data=data, auth=(client_id, client_secret))
@@ -33,14 +35,17 @@ async def item_search(item, search_item):
         if name.find(search_item) != -1:
             items_dict[i['data']['id']] = { 'name' : i['data']['name']['en_US'], 'price' : 'Not in AH'}
     return items_dict
+
 @bot.command(name="login")
 async def login(message):
     response = create_access_token(WOW_CLIENT, WOW_SECRET)
     global token
+  
     if 'access_token' in response:
         token = response['access_token']
     else:
         message.send(response)
+
 @bot.command(name="hello")
 async def hello(message):
     await message.send(f'Hello {message.author}!')
@@ -68,32 +73,58 @@ async def price_check(message):
     item = item[1]
     items = await item_search(item, search_item)
     headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
-    auctions = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/60/auctions?namespace=dynamic-us&locale=en_US', headers = headers)
-    print(search_item)
+    auctions = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/{server_id}/auctions?namespace=dynamic-us&locale=en_US', headers = headers)
     auctions = auctions.json()
     auctions = auctions['auctions']
     for auction in auctions:
         if auction['item']['id'] in items:
             if 'buyout' in auction:
                 if auction['buyout'] < 100:
-                    items[auction['item']['id']]['price'] = str(auction['buyout']) + ' copper'
+                    items[auction['item']['id']]['price'] = str(auction['buyout']) + 'Copper'
                 elif auction['buyout'] < 10000:
-                    items[auction['item']['id']]['price'] = str(auction['buyout'])[:-2] + ' silver'
+                    items[auction['item']['id']]['price'] = str(auction['buyout'])[:-2] + 'Silver ' + str(auction['buyout'])[-2:] + 'Copper'
                 else:
-                    items[auction['item']['id']]['price'] = str(auction['buyout'])[:-4] + ' gold'
+                    items[auction['item']['id']]['price'] = str(auction['buyout'])[:-4] + 'Gold ' + str(auction['buyout'])[-4:-2] + "Silver " + str(auction['buyout'])[-2:] + 'Copper'
 
             elif 'unit_price' in auction:
                 if auction['unit_price'] < 100:
-                    items[auction['item']['id']]['price'] = str(auction['unit_price']) + ' copper per unit'
+                    items[auction['item']['id']]['price'] = str(auction['unit_price']) + 'Copper Per Unit'
                 elif auction['unit_price'] < 10000:
-                    items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-2] + ' silver per unit'
+                    items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-2] + 'Silver ' + str(auction['unit_price'])[-2:] + 'Copper Per Unit'
                 else:
-                    items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-4] + ' silver per unit'
+                    items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-4] + 'Gold ' + str(auction['unit_price'])[-4:-2] + 'Silver ' + str(auction['unit_price'])[-2:] + "Copper Per Unit"
     if len(items.keys()) > 5:
         await message.send('Too many items containing that name, please be more specific')
     else:
         for i in items.keys():
             await message.send(f'{items[i]["name"]} is {items[i]["price"]}')
+
+@bot.command(name="servercheck")
+async def servercheck(message):
+    await message.send(f'The current server is set to {server_name}')
+
+@bot.command(name='server')
+async def server_change(message):
+    headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
+    realm = str(message.message.content).split(' ')[1]
+    get_realm = requests.get(f'https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={realm}', headers = headers)
+    if get_realm.status_code != 200:
+        await message.send(f'Network error, status code {get_realm.status_code}')
+    else:
+        
+        get_realm = get_realm.json()['results']
+        if len(get_realm) > 1:
+            await message.send('Please check the spelling of the server or be more specific')
+        elif len(get_realm) == 0:
+            await message.send('Server not found, please check spelling')
+        else:
+            global server_name
+            global server_id
+            server_name = get_realm[0]['data']['realms'][0]['name']['en_US']
+            server_id = get_realm[0]['data']['id']
+            await message.send(f'Server set to {server_name}, id {server_id}')
+
+
     
 
 
