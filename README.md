@@ -1,6 +1,6 @@
 # AuctionBot
 
-1️⃣ You can find the deployed project at [AuctionBot](https://discord.com/api/oauth2/authorize?client_id=763900890917634059&permissions=2048&scope=bot).
+ You can find the deployed project at [AuctionBot](https://discord.com/api/oauth2/authorize?client_id=763900890917634059&permissions=2048&scope=bot).
 
 ## Contributors
 
