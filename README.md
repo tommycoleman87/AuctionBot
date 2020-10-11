@@ -24,7 +24,7 @@ AuctionBot is a discord bot used to find and report auction prices of specific i
 -    Ability to grab the buyout price of an item from the server the bot is set to using the command !price item_name_here
 -    Ability to report the price of a World of Warcraft game token but typing the command !token
 -    Ability to check the current server by typing the command !servercheck
--    feature five
+
 
 ##  Tech Stack
 
