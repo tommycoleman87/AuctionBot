@@ -1,8 +1,8 @@
-# AuctionBot
+# 1️⃣ AuctionBot
 
- You can find the deployed project at [AuctionBot](https://discord.com/api/oauth2/authorize?client_id=763900890917634059&permissions=2048&scope=bot).
+1️⃣ You can find the deployed project at [AuctionBot](https://discord.com/api/oauth2/authorize?client_id=763900890917634059&permissions=2048&scope=bot).
 
-##  Contributors
+## 4️⃣ Contributors
 
 
 |                                       [Tommy Coleman](https://github.com/tommycoleman87)                                        | 
@@ -18,7 +18,7 @@
 
 AuctionBot is a discord bot used to find and report auction prices of specific items from World of Warcraft to a discord channel.
 
-###  Key Features
+### 4️⃣ Key Features
 
 -    Ability to switch the World of Warcraft server to one of your choosing use the command !server your_server_here
 -    Ability to grab the buyout price of an item from the server the bot is set to using the command !price item_name_here
@@ -26,7 +26,7 @@ AuctionBot is a discord bot used to find and report auction prices of specific i
 -    Ability to check the current server by typing the command !servercheck
 -    feature five
 
-##  Tech Stack
+## 1️⃣ Tech Stack
 
 AuctionBot was built using python3, discord.py library, python_dotenv library, and requests library.
 
@@ -34,20 +34,20 @@ AuctionBot was built using python3, discord.py library, python_dotenv library, a
 
 # APIs
 
-##  OAuth 2.0
+## 2️⃣ OAuth 2.0
 
 OAuth 2.0 is the industry-standard protocol for authorization. OAuth 2.0 focuses on client developer simplicity while providing specific authorization flows for web applications, desktop applications, mobile phones, and living room devices
 
-##  Blizzard Entertainments World of Warcraft API
+## 2️⃣ Blizzard Entertainments World of Warcraft API
 
 The World of Warcraft API requires OAuth 2.0 authentication. It provides an assortment of Game data and profile account data. AuctionBot mainly makes use of the server, items, and auction house endpoints.
 
-##  Discord API
+## 3️⃣ Discord API
 
 Discord API is used to connect the bot to discord. It gives the bot the permissions it needs to post messages in the discord channels. Discord also uses Oauth 2.0 for authentication.
 
 
-#  Environment Variables
+# 3️⃣ Environment Variables
 
 In order for the app to function correctly, the user must set up their own environment variables. There should be a .env file containing the following:
 
