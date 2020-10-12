@@ -18,7 +18,7 @@ server_id = 60
 def create_access_token(client_id, client_secret):
     data = { 'grant_type': 'client_credentials' }
     response = requests.post('https://us.battle.net/oauth/token', data=data, auth=(client_id, client_secret))
-    return response.json()
+    return response
 
 
 
@@ -42,6 +42,7 @@ async def login(message):
         await message.send(f'Network error {response.status_code}')
     else:
         global token
+        repsonse = response.json()
         if 'access_token' in response:
             token = response['access_token']
         else:
