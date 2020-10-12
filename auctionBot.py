@@ -42,7 +42,7 @@ async def login(message):
         await message.send(f'Network error {response.status_code}')
     else:
         global token
-        repsonse = response.json()
+        response = response.json()
         if 'access_token' in response:
             token = response['access_token']
         else:
