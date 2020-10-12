@@ -45,7 +45,7 @@ async def login(message):
         if 'access_token' in response:
             token = response['access_token']
         else:
-            message.send(response)
+            await message.send(f'network error {response}')
 
 @bot.command(name="hello")
 async def hello(message):
@@ -56,7 +56,7 @@ async def get_token(message):
     headers = { 'content-type': 'application/json', 'Authorization' : f'Bearer {token}'}
     token_price = requests.get(f'https://us.api.blizzard.com/data/wow/token/index?namespace=dynamic-us&locale=en_US', headers = headers)
     if token_price.status_code != 200:
-        message.send(f'Network error {token_price.status_code}')
+        await message.send(f'Network error {token_price.status_code}')
     else:
         price = token_price.json()
         price = str(price['price'])[:-4]
@@ -79,7 +79,7 @@ async def price_check(message):
     headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
     auctions = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/{server_id}/auctions?namespace=dynamic-us&locale=en_US', headers = headers)
     if auctions.status_code != 200:
-        message.send(f'Network error {auctions.status_code}')
+        await message.send(f'Network error {auctions.status_code}')
     else:
         auctions = auctions.json()
         auctions = auctions['auctions']
