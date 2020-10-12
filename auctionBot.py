@@ -26,7 +26,6 @@ def create_access_token(client_id, client_secret):
 async def item_search(item, search_item): 
     headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}     
     items = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={item}&orderby=id', headers = headers)
-   
     items = items.json()
     items = items['results']
     items_dict = {}
@@ -39,12 +38,14 @@ async def item_search(item, search_item):
 @bot.command(name="login")
 async def login(message):
     response = create_access_token(WOW_CLIENT, WOW_SECRET)
-    global token
-  
-    if 'access_token' in response:
-        token = response['access_token']
+    if response.status_code != 200:
+        message.send(f'Network error {response.status_code}')
     else:
-        message.send(response)
+        global token
+        if 'access_token' in response:
+            token = response['access_token']
+        else:
+            message.send(response)
 
 @bot.command(name="hello")
 async def hello(message):
@@ -54,13 +55,16 @@ async def hello(message):
 async def get_token(message):
     headers = { 'content-type': 'application/json', 'Authorization' : f'Bearer {token}'}
     token_price = requests.get(f'https://us.api.blizzard.com/data/wow/token/index?namespace=dynamic-us&locale=en_US', headers = headers)
-    price = token_price.json()
-    price = str(price['price'])[:-4]
-    # price = price[:-4]
-    user = str(message.author)
-    user = user.split('#')
-    user = user[0]
-    await message.send(f'Hello {user}, the current price of a token is {price} gold')
+    if token_price.status_code != 200:
+        message.send(f'Network error {token_price.status_code}')
+    else:
+        price = token_price.json()
+        price = str(price['price'])[:-4]
+        # price = price[:-4]
+        user = str(message.author)
+        user = user.split('#')
+        user = user[0]
+        await message.send(f'Hello {user}, the current price of a token is {price} gold')
 
 
 
@@ -74,30 +78,33 @@ async def price_check(message):
     items = await item_search(item, search_item)
     headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
     auctions = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/{server_id}/auctions?namespace=dynamic-us&locale=en_US', headers = headers)
-    auctions = auctions.json()
-    auctions = auctions['auctions']
-    for auction in auctions:
-        if auction['item']['id'] in items:
-            if 'buyout' in auction:
-                if auction['buyout'] < 100:
-                    items[auction['item']['id']]['price'] = str(auction['buyout']) + 'Copper'
-                elif auction['buyout'] < 10000:
-                    items[auction['item']['id']]['price'] = str(auction['buyout'])[:-2] + 'Silver ' + str(auction['buyout'])[-2:] + 'Copper'
-                else:
-                    items[auction['item']['id']]['price'] = str(auction['buyout'])[:-4] + 'Gold ' + str(auction['buyout'])[-4:-2] + "Silver " + str(auction['buyout'])[-2:] + 'Copper'
-
-            elif 'unit_price' in auction:
-                if auction['unit_price'] < 100:
-                    items[auction['item']['id']]['price'] = str(auction['unit_price']) + 'Copper Per Unit'
-                elif auction['unit_price'] < 10000:
-                    items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-2] + 'Silver ' + str(auction['unit_price'])[-2:] + 'Copper Per Unit'
-                else:
-                    items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-4] + 'Gold ' + str(auction['unit_price'])[-4:-2] + 'Silver ' + str(auction['unit_price'])[-2:] + "Copper Per Unit"
-    if len(items.keys()) > 5:
-        await message.send('Too many items containing that name, please be more specific')
+    if auctions.status_code != 200:
+        message.send(f'Network error {auctions.status_code}')
     else:
-        for i in items.keys():
-            await message.send(f'{items[i]["name"]} is {items[i]["price"]}')
+        auctions = auctions.json()
+        auctions = auctions['auctions']
+        for auction in auctions:
+            if auction['item']['id'] in items:
+                if 'buyout' in auction:
+                    if auction['buyout'] < 100:
+                        items[auction['item']['id']]['price'] = str(auction['buyout']) + 'Copper'
+                    elif auction['buyout'] < 10000:
+                        items[auction['item']['id']]['price'] = str(auction['buyout'])[:-2] + 'Silver ' + str(auction['buyout'])[-2:] + 'Copper'
+                    else:
+                        items[auction['item']['id']]['price'] = str(auction['buyout'])[:-4] + 'Gold ' + str(auction['buyout'])[-4:-2] + "Silver " + str(auction['buyout'])[-2:] + 'Copper'
+
+                elif 'unit_price' in auction:
+                    if auction['unit_price'] < 100:
+                        items[auction['item']['id']]['price'] = str(auction['unit_price']) + 'Copper Per Unit'
+                    elif auction['unit_price'] < 10000:
+                        items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-2] + 'Silver ' + str(auction['unit_price'])[-2:] + 'Copper Per Unit'
+                    else:
+                        items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-4] + 'Gold ' + str(auction['unit_price'])[-4:-2] + 'Silver ' + str(auction['unit_price'])[-2:] + "Copper Per Unit"
+        if len(items.keys()) > 5:
+            await message.send('Too many items containing that name, please be more specific')
+        else:
+            for i in items.keys():
+                await message.send(f'{items[i]["name"]} is {items[i]["price"]}')
 
 @bot.command(name="servercheck")
 async def servercheck(message):
