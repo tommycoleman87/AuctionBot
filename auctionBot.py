@@ -39,7 +39,7 @@ async def item_search(item, search_item):
 async def login(message):
     response = create_access_token(WOW_CLIENT, WOW_SECRET)
     if response.status_code != 200:
-        message.send(f'Network error {response.status_code}')
+        await message.send(f'Network error {response.status_code}')
     else:
         global token
         if 'access_token' in response:
