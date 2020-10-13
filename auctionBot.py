@@ -103,6 +103,8 @@ async def price_check(message):
                         items[auction['item']['id']]['price'] = str(auction['unit_price'])[:-4] + 'Gold ' + str(auction['unit_price'])[-4:-2] + 'Silver ' + str(auction['unit_price'])[-2:] + "Copper Per Unit"
         if len(items.keys()) > 5:
             await message.send('Too many items containing that name, please be more specific')
+        elif len(items.keys()) == 0:
+            await message.send(f'No auctions found for {search_item}')
         else:
             for i in items.keys():
                 await message.send(f'{items[i]["name"]} is {items[i]["price"]}')
