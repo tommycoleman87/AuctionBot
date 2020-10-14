@@ -56,16 +56,19 @@ async def hello(message):
 async def get_token(message):
     headers = { 'content-type': 'application/json', 'Authorization' : f'Bearer {token}'}
     token_price = requests.get(f'https://us.api.blizzard.com/data/wow/token/index?namespace=dynamic-us&locale=en_US', headers = headers)
-    if token_price.status_code != 200:
-        await message.send(f'Network error {token_price.status_code}')
-    else:
+    if token_price.status_code == 200:
         price = token_price.json()
         price = str(price['price'])[:-4]
-        # price = price[:-4]
         user = str(message.author)
         user = user.split('#')
         user = user[0]
         await message.send(f'Hello {user}, the current price of a token is {price} gold')
+    elif token_price.status_code == 401:
+        await login(message)
+        await get_token(message)
+    else:
+        await message.send(f'Network error {token_price.status_code}')
+        
 
 
 
@@ -77,6 +80,7 @@ async def price_check(message):
     item = item.split(' ')
     item = item[1]
     items = await item_search(item, search_item)
+    
     headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
     auctions = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/{server_id}/auctions?namespace=dynamic-us&locale=en_US', headers = headers)
     if auctions.status_code != 200:
@@ -85,7 +89,7 @@ async def price_check(message):
         auctions = auctions.json()
         auctions = auctions['auctions']
         for auction in auctions:
-            if auction['item']['id'] in items:
+            if auction['item']['id'] in items.keys():
                 if 'buyout' in auction:
                     if auction['buyout'] < 100:
                         items[auction['item']['id']]['price'] = str(auction['buyout']) + 'Copper'
