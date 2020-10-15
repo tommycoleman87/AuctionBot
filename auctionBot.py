@@ -4,11 +4,10 @@ import discord
 import requests
 from dotenv import load_dotenv
 from discord.ext import commands
-import time
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD = os.getenv('DISCORD_GUILD')
+# GUILD = os.getenv('DISCORD_GUILD')
 bot = commands.Bot(command_prefix='!')
 WOW_CLIENT = os.getenv('WOW_CLIENT')
 WOW_SECRET = os.getenv('WOW_SECRET')
@@ -70,8 +69,6 @@ async def get_token(message):
         await message.send(f'Network error {token_price.status_code}')
         
 
-
-
 @bot.command(name="price")
 async def price_check(message):
     item = str(message.message.content)
@@ -83,9 +80,10 @@ async def price_check(message):
     
     headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {token}'}
     auctions = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/{server_id}/auctions?namespace=dynamic-us&locale=en_US', headers = headers)
-    if auctions.status_code != 200:
-        await message.send(f'Network error {auctions.status_code}')
-    else:
+    if auctions.status_code == 401:
+        await login(message)
+        await price_check(message)
+    elif auctions.status_code == 200:
         auctions = auctions.json()
         auctions = auctions['auctions']
         for auction in auctions:
@@ -112,6 +110,8 @@ async def price_check(message):
         else:
             for i in items.keys():
                 await message.send(f'{items[i]["name"]} is {items[i]["price"]}')
+    else:
+        await message.send(f'Network error {auctions.status_code}')
 
 @bot.command(name="servercheck")
 async def servercheck(message):
