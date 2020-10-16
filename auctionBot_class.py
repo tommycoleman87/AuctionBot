@@ -7,10 +7,10 @@ class AuctionBot():
     access_token = None
     access_token_expiration = None
 
-    def __init__(self,host,key,secret):
+    def __init__(self,key,secret):
         # the function that is executed when
         # an instance of the class is created
-        self.host = host
+        self.host = 'https://us.battle.net/oauth/token'
         self.key = key
         self.secret = secret
 
@@ -21,7 +21,7 @@ class AuctionBot():
         except Exception as e:
             print(e)
         else:
-            self.access_token_expiration = time.time() + 3500
+            self.access_token_expiration = time.time() + 86300
 
     def getAccessToken(self):
         # the function that is 
