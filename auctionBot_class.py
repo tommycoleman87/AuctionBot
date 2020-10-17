@@ -46,9 +46,13 @@ class AuctionBot():
             # {"access_token": ""}
             return request.json()['access_token']
 
-    async def greet(self, message):
-        author = message.author.split('#')[0]
-        await message.send(f'Greetings {author}')
+    async def greet(self, ctx):
+        author = str(ctx.author).split('#')[0]
+        await ctx.send(f'Greetings {author}')
+
+    async def current_server(self, ctx):
+        server_name = self.server['name']
+        await ctx.send(f'The server is set to {server_name}')
 
     class Decorators():
         @staticmethod

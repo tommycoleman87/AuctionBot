@@ -4,7 +4,7 @@ import discord
 import requests
 from dotenv import load_dotenv
 from discord.ext import commands
-
+from auctionBot_class import AuctionBot
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 # GUILD = os.getenv('DISCORD_GUILD')
@@ -14,6 +14,25 @@ WOW_SECRET = os.getenv('WOW_SECRET')
 token = ''
 server_name = 'Stormrage'
 server_id = 60
+guilds = {}
+
+@bot.command(name='hello')
+async def hello(ctx):
+    guild = ctx.guild
+    if guild not in guilds:
+        guilds[f'{guild}'] = AuctionBot()
+        await guilds[f'{guild}'].greet(ctx)
+    else:
+        await guilds[f'{guild}'].greet(ctx)
+
+@bot.command(name='server')
+async def server(ctx):
+    guild = ctx.guild
+    if guild not in guilds:
+        guilds[f'{guild}'] = AuctionBot()
+        await guilds[f'{guild}'].current_server(ctx)
+    else:
+        await guilds[f'{guild}'].current_server(ctx)
 # def create_access_token(client_id, client_secret):
 #     data = { 'grant_type': 'client_credentials' }
 #     response = requests.post('https://us.battle.net/oauth/token', data=data, auth=(client_id, client_secret))
