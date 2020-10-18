@@ -18,7 +18,7 @@ guilds = {}
 
 @bot.command(name='hello')
 async def hello(ctx):
-    guild = ctx.guild
+    guild = str(ctx.guild)
     if guild not in guilds:
         guilds[f'{guild}'] = AuctionBot()
         await guilds[f'{guild}'].greet(ctx)
@@ -27,12 +27,25 @@ async def hello(ctx):
 
 @bot.command(name='server')
 async def server(ctx):
-    guild = ctx.guild
+    guild = str(ctx.guild)
     if guild not in guilds:
         guilds[f'{guild}'] = AuctionBot()
         await guilds[f'{guild}'].current_server(ctx)
     else:
         await guilds[f'{guild}'].current_server(ctx)
+
+@bot.command(name='setserver')
+async def setserver(ctx, *, arg):
+    guild = str(ctx.guild)
+    if guild not in guilds:
+        guilds[f'{guild}'] = AuctionBot()
+        await guilds[f'{guild}'].set_server(ctx, arg)
+    else:
+        await guilds[f'{guild}'].set_server(ctx, arg)
+@bot.command(name='guilds')
+async def guilds_print(ctx):
+    await ctx.send(guilds)
+
 # def create_access_token(client_id, client_secret):
 #     data = { 'grant_type': 'client_credentials' }
 #     response = requests.post('https://us.battle.net/oauth/token', data=data, auth=(client_id, client_secret))

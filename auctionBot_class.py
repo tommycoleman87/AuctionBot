@@ -17,9 +17,11 @@ class AuctionBot():
         self.access_token = None
         self.expiration = None
         self.server = {'name': 'Stormrage', 'id': 60}
+        
         try:
             self.access_token = self.getAccessToken()
             if self.access_token is None:
+                print('error')
                 raise Exception("Request for access token failed.")
         except Exception as e:
             print(e)
@@ -35,9 +37,7 @@ class AuctionBot():
             data = { 'grant_type': 'client_credentials' }
             # request an access token
             request = requests.post(self.host, data=data, auth=(WOW_CLIENT, WOW_SECRET))
-
-            # optional: raise exception for status code
-            request.raise_for_status()
+            print(request.status_code)
         except Exception as e:
             print(e)
             return None
@@ -53,6 +53,20 @@ class AuctionBot():
     async def current_server(self, ctx):
         server_name = self.server['name']
         await ctx.send(f'The server is set to {server_name}')
+    
+    async def set_server(self, ctx, new_server):
+        headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {self.access_token}'}
+        response = requests.get(f'https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={new_server}', headers = headers)
+        realm = [r for r in response.json()['results'][0]['data']['realms'] if r['name']['en_US'].find(new_server) != -1]
+        if response.status_code == 200:
+            if len(realm) == 0:
+                await ctx.send('Realm not found. Check spelling and capitalization and try again.')
+            else:
+                self.server['name'] = realm[0]['name']['en_US']
+                self.server['id'] = realm[0]['id'] 
+                await ctx.send(f'Server set to {self.server["name"]}')
+        else:
+            await ctx.send(f'Error {response.status_code}')
 
     class Decorators():
         @staticmethod
