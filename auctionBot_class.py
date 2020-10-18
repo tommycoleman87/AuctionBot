@@ -22,7 +22,6 @@ class AuctionBot():
             self.access_token = self.getAccessToken()
             self.headers['Authorization'] = f'Bearer {self.access_token}'
             if self.access_token is None:
-                print('error')
                 raise Exception("Request for access token failed.")
         except Exception as e:
             print(e)
@@ -38,7 +37,6 @@ class AuctionBot():
             data = { 'grant_type': 'client_credentials' }
             # request an access token
             request = requests.post(self.host, data=data, auth=(WOW_CLIENT, WOW_SECRET))
-            print(request.status_code)
         except Exception as e:
             print(e)
             return None
@@ -50,24 +48,41 @@ class AuctionBot():
     async def greet(self, ctx):
         author = str(ctx.author).split('#')[0]
         await ctx.send(f'Greetings {author}')
+    
+    class Decorators():
+        @staticmethod
+        def refreshToken(decorated):
+            # the function that is used to check
+            # the JWT and refresh if necessary
+            def wrapper(api,*args,**kwargs):
+                if time.time() > api.expiration:
+                    api.getAccessToken()
+                return decorated(api,*args,**kwargs)
 
+            return wrapper
+
+    @Decorators.refreshToken
     async def current_server(self, ctx):
         server_name = self.server['name']
         await ctx.send(f'The server is set to {server_name}')
     
+    @Decorators.refreshToken
     async def set_server(self, ctx, new_server):
         response = requests.get(f'https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={new_server}', headers = self.headers)
         if response.status_code == 200:
             realm = [r for r in response.json()['results'][0]['data']['realms'] if r['name']['en_US'].find(new_server) != -1]
             if len(realm) == 0:
                 await ctx.send('Realm not found. Check spelling and capitalization and try again.')
+            elif len(realm) > 1:
+                await ctx.send('Too many matches, please be more specific.')
             else:
                 self.server['name'] = realm[0]['name']['en_US']
-                self.server['id'] = realm[0]['id'] 
+                self.server['id'] = response.json()['results'][0]['data']['id']
                 await ctx.send(f'Server set to {self.server["name"]}')
         else:
             await ctx.send(f'Error {response.status_code}')
 
+    @Decorators.refreshToken
     async def token(self, ctx):
         response = requests.get(f'https://us.api.blizzard.com/data/wow/token/index?namespace=dynamic-us&locale=en_US', headers = self.headers)
         if response.status_code == 200:
@@ -76,6 +91,7 @@ class AuctionBot():
         else:
             await ctx.send(f"Error {response.status_code}")
 
+    @Decorators.refreshToken
     async def price_check(self, ctx, arg):
         item_request = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={arg}&orderby=id', headers = self.headers)
         if item_request.status_code == 200:
@@ -105,13 +121,16 @@ class AuctionBot():
                     if items_table[key]['price'] is not None:
                         price = self.wow_currency_converter(items_table[key]['price'])
                         message += f'{items_table[key]["name"]} is {price} \n'
-
-                await ctx.send(message)
+                if len(message) != 0:
+                    await ctx.send(message)
+                else:
+                    await ctx.send('Item not found in the Auction House')
             else:
                 await ctx.send(f'Error {response.status_code}')
         else:
             await ctx.send(f'Error {item_request.status_code}')
 
+    @Decorators.refreshToken
     def wow_currency_converter(self, currency):
         price = None
         if currency < 100:
@@ -121,19 +140,4 @@ class AuctionBot():
         else:
             price = '{:,}'.format(int(str(currency)[:-4])) + ' Gold ' + str(currency)[-4:-2] + " Silver " + str(currency)[-2:] + ' Copper'
         return price
-    class Decorators():
-        @staticmethod
-        def refreshToken(decorated):
-            # the function that is used to check
-            # the JWT and refresh if necessary
-            def wrapper(api,*args,**kwargs):
-                if time.time() > api.access_token_expiration:
-                    api.getAccessToken()
-                return decorated(api,*args,**kwargs)
 
-            return wrapper
-
-    # @Decorators.refreshToken
-    # def someRequest():
-    #     # make our API request
-    #     pass
