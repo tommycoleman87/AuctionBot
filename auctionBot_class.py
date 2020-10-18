@@ -17,9 +17,10 @@ class AuctionBot():
         self.access_token = None
         self.expiration = None
         self.server = {'name': 'Stormrage', 'id': 60}
-        
+        self.headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {self.access_token}'}
         try:
             self.access_token = self.getAccessToken()
+            self.headers['Authorization'] = f'Bearer {self.access_token}'
             if self.access_token is None:
                 print('error')
                 raise Exception("Request for access token failed.")
@@ -55,10 +56,9 @@ class AuctionBot():
         await ctx.send(f'The server is set to {server_name}')
     
     async def set_server(self, ctx, new_server):
-        headers = { 'content-type': 'application/json;charset=UTF-8','Authorization' : f'Bearer {self.access_token}'}
-        response = requests.get(f'https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={new_server}', headers = headers)
-        realm = [r for r in response.json()['results'][0]['data']['realms'] if r['name']['en_US'].find(new_server) != -1]
+        response = requests.get(f'https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={new_server}', headers = self.headers)
         if response.status_code == 200:
+            realm = [r for r in response.json()['results'][0]['data']['realms'] if r['name']['en_US'].find(new_server) != -1]
             if len(realm) == 0:
                 await ctx.send('Realm not found. Check spelling and capitalization and try again.')
             else:
@@ -68,6 +68,59 @@ class AuctionBot():
         else:
             await ctx.send(f'Error {response.status_code}')
 
+    async def token(self, ctx):
+        response = requests.get(f'https://us.api.blizzard.com/data/wow/token/index?namespace=dynamic-us&locale=en_US', headers = self.headers)
+        if response.status_code == 200:
+            token_price = str(response.json()['price'])[:-4]
+            await ctx.send("The current price of a WoW token is {:,} Gold".format(int(token_price)))
+        else:
+            await ctx.send(f"Error {response.status_code}")
+
+    async def price_check(self, ctx, arg):
+        item_request = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={arg}&orderby=id', headers = self.headers)
+        if item_request.status_code == 200:
+            items = item_request.json()['results']
+            items_table = {}
+            
+            for item in items:
+                name = item['data']['name']['en_US']
+                if name.find(arg) != -1:
+                    items_table[item['data']['id']] = { 'name' : name, 'price' : None}
+            
+            response = requests.get(f'https://us.api.blizzard.com/data/wow/connected-realm/{self.server["id"]}/auctions?namespace=dynamic-us&locale=en_US', headers = self.headers)
+            if response.status_code == 200:
+                message = ''
+                auctions = response.json()['auctions']
+                for auction in auctions:
+                    item_id = auction['item']['id']
+                    if item_id in items_table.keys():
+                        if 'buyout' in auction:
+                            if items_table[item_id]['price'] is None or items_table[item_id]['price'] > auction['buyout']:
+                                items_table[item_id]['price'] = auction['buyout']
+                        elif 'unit_price' in auction:
+                            if items_table[item_id]['price'] is None or items_table[item_id]['price'] > auction['unit_price']:
+                                items_table[item_id]['price'] = auction['unit_price']
+                
+                for key in items_table.keys():
+                    if items_table[key]['price'] is not None:
+                        price = self.wow_currency_converter(items_table[key]['price'])
+                        message += f'{items_table[key]["name"]} is {price} \n'
+
+                await ctx.send(message)
+            else:
+                await ctx.send(f'Error {response.status_code}')
+        else:
+            await ctx.send(f'Error {item_request.status_code}')
+
+    def wow_currency_converter(self, currency):
+        price = None
+        if currency < 100:
+            price = str(currency) + ' Copper'
+        elif currency < 10000:
+            price = str(currency)[:-2] + ' Silver ' + str(currency)[-2:] + ' Copper'
+        else:
+            price = '{:,}'.format(int(str(currency)[:-4])) + ' Gold ' + str(currency)[-4:-2] + " Silver " + str(currency)[-2:] + ' Copper'
+        return price
     class Decorators():
         @staticmethod
         def refreshToken(decorated):
