@@ -130,7 +130,7 @@ class AuctionBot():
         else:
             await ctx.send(f'Error {item_request.status_code}')
 
-    @Decorators.refreshToken
+   
     def wow_currency_converter(self, currency):
         price = None
         if currency < 100:

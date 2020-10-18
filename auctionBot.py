@@ -55,8 +55,12 @@ async def price(ctx, *, arg):
     else:
         await guilds[f'{guild}'].price_check(ctx, arg)
 
+@bot.command(name='commands')
+async def commands_list(ctx):
+    await ctx.send('Commands are: \n !price <item name> - returns the auction price of the item in the current server \n !setserver <server name> - sets the bot to the server \n !server - returns the current server \n !token - returns the current price of a wow token \n !hello - greets the user')
+
 @bot.command(name='guilds')
 async def guilds_print(ctx):
     await ctx.send(guilds.keys())
-
+    await ctx.send(bot.user)
 bot.run(TOKEN)
