@@ -120,7 +120,11 @@ class AuctionBot():
                 for key in items_table.keys():
                     if items_table[key]['price'] is not None:
                         price = self.wow_currency_converter(items_table[key]['price'])
-                        message += f'{items_table[key]["name"]} is {price} \n'
+                        if items_table[key]['name'] == arg:
+                            await ctx.send(f'{items_table[key]["name"]} is {price}')
+                            return
+                        else:
+                            message += f'{items_table[key]["name"]} is {price} \n'
                 if len(message) != 0:
                     await ctx.send(message)
                 else:
