@@ -137,6 +137,12 @@ class AuctionBot():
     @Decorators.refreshToken
     async def item_search(self, ctx, arg):
         item_request = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={arg}&orderby=id', headers = self.headers)
+        if item_request.status_code == 200:
+            items = item_request.json()['results']
+            for item in items:
+                name = item['data']['name']['en_US']
+                if name == arg:
+                    await ctx.send(item)
         await ctx.send(item_request.status_code)
    
     def wow_currency_converter(self, currency):
