@@ -134,6 +134,10 @@ class AuctionBot():
         else:
             await ctx.send(f'Error {item_request.status_code}')
 
+    @Decorators.refreshToken
+    async def item_search(self, ctx, arg):
+        item_request = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={arg}&orderby=id', headers = self.headers)
+        await ctx.send(item_request.status_code)
    
     def wow_currency_converter(self, currency):
         price = None
@@ -145,3 +149,4 @@ class AuctionBot():
             price = '{:,}'.format(int(str(currency)[:-4])) + ' Gold ' + str(currency)[-4:-2] + " Silver " + str(currency)[-2:] + ' Copper'
         return price
 
+    
