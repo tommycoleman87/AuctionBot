@@ -142,7 +142,11 @@ class AuctionBot():
             for item in items:
                 name = item['data']['name']['en_US']
                 if name == arg:
+                    return_item = {
+                        'type' : item['data']['item_subclass']['name']['en_US']
+                    }
                     await ctx.send(item)
+                    await ctx.send(return_item)
         await ctx.send(item_request.status_code)
    
     def wow_currency_converter(self, currency):
