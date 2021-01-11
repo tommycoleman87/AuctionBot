@@ -68,6 +68,7 @@ class AuctionBot():
     
     @Decorators.refreshToken
     async def set_server(self, ctx, new_server):
+        #function used to set the WoW game server to the server desired
         response = requests.get(f'https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={new_server}', headers = self.headers)
         if response.status_code == 200:
             realm = [r for r in response.json()['results'][0]['data']['realms'] if r['name']['en_US'].find(new_server) != -1]
@@ -84,6 +85,7 @@ class AuctionBot():
 
     @Decorators.refreshToken
     async def token(self, ctx):
+        #function to report the price of a WoW token
         response = requests.get(f'https://us.api.blizzard.com/data/wow/token/index?namespace=dynamic-us&locale=en_US', headers = self.headers)
         if response.status_code == 200:
             token_price = str(response.json()['price'])[:-4]
@@ -93,6 +95,7 @@ class AuctionBot():
 
     @Decorators.refreshToken
     async def price_check(self, ctx, arg):
+        #function that grabs the price of a specific item on the servers auction house
         item_request = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={arg}&orderby=id', headers = self.headers)
         if item_request.status_code == 200:
             items = item_request.json()['results']
@@ -134,8 +137,23 @@ class AuctionBot():
         else:
             await ctx.send(f'Error {item_request.status_code}')
 
+    @Decorators.refreshToken
+    async def item_search(self, ctx, arg):
+        #function used to find information on a specific item in game
+        item_request = requests.get(f'https://us.api.blizzard.com/data/wow/search/item?namespace=static-us&locale=en_US&name.en_US={arg}&orderby=id', headers = self.headers)
+        if item_request.status_code == 200:
+            items = item_request.json()['results']
+            for item in items:
+                name = item['data']['name']['en_US']
+                if name == arg:
+                    return_item = f"{item['data']['name']['en_US']}\n {item['data']['quality']['name']['en_US']} {item['data']['item_subclass']['name']['en_US']} \n {item['data']['item_class']['name']['en_US']} \n Item Level : {item['data']['level']}"
+   
+                    await ctx.send(return_item)
+        else:
+            await ctx.send(item_request.status_code)
    
     def wow_currency_converter(self, currency):
+        #function that converts the int to a more readable format
         price = None
         if currency < 100:
             price = str(currency) + ' Copper'
@@ -145,3 +163,4 @@ class AuctionBot():
             price = '{:,}'.format(int(str(currency)[:-4])) + ' Gold ' + str(currency)[-4:-2] + " Silver " + str(currency)[-2:] + ' Copper'
         return price
 
+    
