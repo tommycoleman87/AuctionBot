@@ -151,16 +151,18 @@ class AuctionBot():
                     await ctx.send(return_item)
         else:
             await ctx.send(item_request.status_code)
+
     @Decorators.refreshToken
     async def pvp_rating_twos(self, ctx, arg):
         player_information = arg.split('-')
         realm = player_information[1]
         character = player_information[0]
         
-        rating = requests.get(f'https://us.api.blizzard.com/profile/wow/character/{realm}/{character}/pvp-bracket/3v3?namespace=profile-us&locale=en_US', headers = self.headers)
+        rating = requests.get(f'https://us.api.blizzard.com/profile/wow/character/{realm.lower()}/{character.lower()}/pvp-bracket/3v3?namespace=profile-us&locale=en_US', headers = self.headers)
         await ctx.send(rating.status_code)
         if rating.status_code == 200:
-            await ctx.send(rating['data'])
+            rating_info = rating.json()['rating']
+            await ctx.send(rating_info)
     def wow_currency_converter(self, currency):
         #function that converts the int to a more readable format
         price = None
