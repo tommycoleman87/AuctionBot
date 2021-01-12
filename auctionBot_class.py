@@ -146,12 +146,28 @@ class AuctionBot():
             for item in items:
                 name = item['data']['name']['en_US']
                 if name == arg:
-                    return_item = f"{item['data']['name']['en_US']}\n {item['data']['quality']['name']['en_US']} {item['data']['item_subclass']['name']['en_US']} \n {item['data']['item_class']['name']['en_US']} \n Item Level : {item['data']['level']}"
+                    return_item = f"{item['data']['name']['en_US']}\n {item['data']['quality']['name']['en_US']} {item['data']['item_subclass']['name']['en_US']} \n Item Type: {item['data']['item_class']['name']['en_US']} \n Item Level : {item['data']['level']}"
    
                     await ctx.send(return_item)
         else:
             await ctx.send(item_request.status_code)
-   
+
+    @Decorators.refreshToken
+    async def pvp_rating_twos(self, ctx, arg):
+        player_information = arg.split('-')
+        realm = player_information[1]
+        character = player_information[0]
+        
+        rating = requests.get(f'https://us.api.blizzard.com/profile/wow/character/{realm.lower()}/{character.lower()}/pvp-bracket/2v2?namespace=profile-us&locale=en_US', headers = self.headers)
+        if rating.status_code == 200:
+            rating_info = rating.json()
+            weekly_win_percentage = "{:.2%}".format(rating_info["weekly_match_statistics"]["won"] / rating_info["weekly_match_statistics"]["played"])
+            season_win_percentage = "{:.2%}".format(rating_info["season_match_statistics"]["won"] / rating_info["season_match_statistics"]["played"])
+            return_str = f'Current Rating: {rating_info["rating"]}'
+            return_str += f'\n \n Weekly Games Played: {rating_info["weekly_match_statistics"]["played"]} \n Weekly Wins: {rating_info["weekly_match_statistics"]["won"]} \n Weekly Losses: {rating_info["weekly_match_statistics"]["lost"]} \n Win %: {weekly_win_percentage}'
+            return_str += f'\n \n Season Games Played: {rating_info["season_match_statistics"]["played"]} \n Season Wins: {rating_info["weekly_match_statistics"]["won"]} \n Season Losses: {rating_info["weekly_match_statistics"]["lost"]} \n Win %: {season_win_percentage}'
+            await ctx.send(return_str)
+
     def wow_currency_converter(self, currency):
         #function that converts the int to a more readable format
         price = None
