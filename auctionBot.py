@@ -63,6 +63,7 @@ async def search(ctx, *, arg):
         await guilds[f'{guild}'].item_search(ctx, arg)
     else:
         await guilds[f'{guild}'].item_search(ctx, arg)
+
 @bot.command(name="rating2v2")
 async def rating2v2(ctx, arg):
     guild = str(ctx.guild)
@@ -71,6 +72,16 @@ async def rating2v2(ctx, arg):
         await guilds[f'{guild}'].pvp_rating_twos(ctx, arg)
     else:
         await guilds[f'{guild}'].pvp_rating_twos(ctx, arg)
+
+@bot.command(name="rating3v3")
+async def rating3v3(ctx,arg):
+    guild = str(ctx.guild)
+    if guild not in guilds:
+        guilds[f'{guild}'] = AuctionBot()
+        await guilds[f'{guild}'].pvp_rating_twos(ctx, arg)
+    else:
+        await guilds[f'{guild}'].pvp_rating_threes(ctx, arg)
+        
 @bot.command(name='commands')
 async def commands_list(ctx):
     await ctx.send('Commands are: \n !price <item name> - returns the auction price of the item in the current server \n !setserver <server name> - sets the bot to the server \n !server - returns the current server \n !token - returns the current price of a wow token \n !hello - greets the user')

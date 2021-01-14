@@ -161,11 +161,42 @@ class AuctionBot():
         rating = requests.get(f'https://us.api.blizzard.com/profile/wow/character/{realm.lower()}/{character.lower()}/pvp-bracket/2v2?namespace=profile-us&locale=en_US', headers = self.headers)
         if rating.status_code == 200:
             rating_info = rating.json()
-            weekly_win_percentage = "{:.2%}".format(rating_info["weekly_match_statistics"]["won"] / rating_info["weekly_match_statistics"]["played"])
-            season_win_percentage = "{:.2%}".format(rating_info["season_match_statistics"]["won"] / rating_info["season_match_statistics"]["played"])
+            if rating_info["weekly_match_statistics"]["played"] > 0:
+                weekly_win_percentage = "{:.2%}".format(rating_info["weekly_match_statistics"]["won"] / rating_info["weekly_match_statistics"]["played"])
+            else:
+                weekly_win_percentage = 0
+
+            if rating_info["season_match_statistics"]["played"] > 0:
+                season_win_percentage = "{:.2%}".format(rating_info["season_match_statistics"]["won"] / rating_info["season_match_statistics"]["played"])
+            else:
+                season_win_percentage = 0
             return_str = f'Current Rating: {rating_info["rating"]}'
             return_str += f'\n \n Weekly Games Played: {rating_info["weekly_match_statistics"]["played"]} \n Weekly Wins: {rating_info["weekly_match_statistics"]["won"]} \n Weekly Losses: {rating_info["weekly_match_statistics"]["lost"]} \n Win %: {weekly_win_percentage}'
-            return_str += f'\n \n Season Games Played: {rating_info["season_match_statistics"]["played"]} \n Season Wins: {rating_info["weekly_match_statistics"]["won"]} \n Season Losses: {rating_info["weekly_match_statistics"]["lost"]} \n Win %: {season_win_percentage}'
+            return_str += f'\n \n Season Games Played: {rating_info["season_match_statistics"]["played"]} \n Season Wins: {rating_info["season_match_statistics"]["won"]} \n Season Losses: {rating_info["season_match_statistics"]["lost"]} \n Win %: {season_win_percentage}'
+            await ctx.send(return_str)
+    
+    @Decorators.refreshToken
+    async def pvp_rating_threes(self, ctx, arg):
+        player_information = arg.split('-')
+        realm = player_information[1]
+        character = player_information[0]
+        
+        rating = requests.get(f'https://us.api.blizzard.com/profile/wow/character/{realm.lower()}/{character.lower()}/pvp-bracket/3v3?namespace=profile-us&locale=en_US', headers = self.headers)
+        if rating.status_code == 200:
+            rating_info = rating.json()
+            if rating_info["weekly_match_statistics"]["played"] > 0:
+                weekly_win_percentage = "{:.2%}".format(rating_info["weekly_match_statistics"]["won"] / rating_info["weekly_match_statistics"]["played"])
+            else:
+                weekly_win_percentage = 0
+
+            if rating_info["season_match_statistics"]["played"] > 0:
+                season_win_percentage = "{:.2%}".format(rating_info["season_match_statistics"]["won"] / rating_info["season_match_statistics"]["played"])
+            else:
+                season_win_percentage = 0
+
+            return_str = f'Current Rating: {rating_info["rating"]}'
+            return_str += f'\n \n Weekly Games Played: {rating_info["weekly_match_statistics"]["played"]} \n Weekly Wins: {rating_info["weekly_match_statistics"]["won"]} \n Weekly Losses: {rating_info["weekly_match_statistics"]["lost"]} \n Win %: {weekly_win_percentage}'
+            return_str += f'\n \n Season Games Played: {rating_info["season_match_statistics"]["played"]} \n Season Wins: {rating_info["season_match_statistics"]["won"]} \n Season Losses: {rating_info["season_match_statistics"]["lost"]} \n Win %: {season_win_percentage}'
             await ctx.send(return_str)
 
     def wow_currency_converter(self, currency):
